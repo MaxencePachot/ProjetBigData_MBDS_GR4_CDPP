@@ -1,0 +1,6 @@
+{
+    "java.project.referencedLibraries": [
+        "lib/**/*.jar",
+        "ExtractorMongoDB/mongodb-jdbc-2.0.0-all.jar"
+    ]
+}

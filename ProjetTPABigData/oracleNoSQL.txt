@@ -1,0 +1,52 @@
+(Tous les cmd sont à ouvrir à cette adresse : C:\vagrant-projects\OracleDatabase\21.3.0)
+(A chaque serveur démarré changer de cmd)
+
+-- Allumer et se connecter VM 
+
+Vagrant up 
+
+Vagrant status
+
+Vagrant ssh
+
+-- Implémenter la base oracle noSQL
+
+-- Lancer le serveur KVStore using KVLite utility 
+
+nohup java -Xmx256m -Xms256m -jar $KVHOME/lib/kvstore.jar kvlite -secure-config disable -root $KVROOT &
+
+-- Ouvrir un nouveau cmd
+
+Vagrant ssh
+
+-- Vérifier le ping de kvstore 
+
+java -Xmx256m -Xms256m -jar $KVHOME/lib/kvstore.jar ping -host localhost -port 5000
+
+-- Créer un dossier dans la vm
+
+mkdir -p scriptNoSQLJava
+
+-- Déplacer les fichiers (Immatriculations.csv et Concessionnaire.java) dans la VM
+
+javac ../../vagrant/ProjetTPABigData/codenosql/concessionnaire/concessionnaire/Concessionnaire.java -d scriptNoSQLJava
+
+cp ../../vagrant/ProjetTPABigData/codenosql/concessionnaire/concessionnaire/Immatriculations.csv ~
+
+-- Compiler et executer la classe Concessionnaire.java
+
+java -cp $CLASSPATH:scriptNoSQLJava concessionnaire.Concessionnaire
+
+-- Vérification 
+
+-- Lancer le SQL SHELL 
+
+java -Xmx256m -Xms256m -jar $KVHOME/lib/sql.jar -helper-hosts localhost:5000 -store kvstore
+
+-- Entrer cette commande pour vérifier une valeur dans la base
+
+SELECT * FROM IMMATRICULATIONS_ESTIA2223_PACHOT WHERE immatriculation = "2798ZB89";
+
+-- Stop KVStore
+
+java -Xmx256m -Xms256m -jar $KVHOME/lib/kvstore.jar stop -root $KVROOT

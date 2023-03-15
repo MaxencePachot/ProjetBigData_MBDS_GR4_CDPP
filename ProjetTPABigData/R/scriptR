@@ -1,0 +1,9 @@
+library(rJava)
+library(RHive)
+# Connecter à 
+rhive.connect(host="localhost", port="10000", hiveServer2=TRUE)
+#Exécuter une requête 
+result <- rhive.query("SELECT * FROM Clients_12_ext")
+print(result)
+#Fermer la connexion
+rhive.close()

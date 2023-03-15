@@ -1,0 +1,336 @@
+(Tous les cmd sont à ouvrir à cette adresse : C:\vagrant-projects\OracleDatabase\21.3.0)
+(A chaque serveur démarré changer de cmd)
+
+-- Allumer et se connecter VM 
+
+Vagrant up 
+
+Vagrant status
+
+Vagrant ssh
+
+--- HIVE ---
+
+-- Ouvrir un nouveau cmd
+
+Vagrant ssh
+
+-- lancer le serveur Hive (avoir lancé hdfs avant dans un autre cmd)
+
+(lancer hdfs : 
+start-dfs.sh
+start-yarn.sh
+)
+
+nohup hive --service metastore > /dev/null &
+nohup hiveserver2 > /dev/null &
+
+-- Ouvrir un nouveau cmd
+
+Vagrant ssh
+
+-- Se connecter au serveur HIVE
+
+beeline -u jdbc:hive2://localhost:10000 vagrant
+
+0: jdbc:hive2://localhost:10000>  
+
+-----------------------------------------------------------------------------------------------------
+--------------------------------------Partie Oracle noSQL--------------------------------------------
+-----------------------------------------------------------------------------------------------------
+
+-- Table externe Oracle noSQL
+
+-----------------------------------------------------------------------------------------------------
+--------------------------------------- Immatriculations_ext ----------------------------------------
+-----------------------------------------------------------------------------------------------------
+
+CREATE DATABASE IF NOT EXISTS projetBigData;
+USE projetBigData;
+
+drop table Immatriculations_ext;
+
+CREATE EXTERNAL TABLE IF NOT EXISTS Immatriculations_ext  (
+immatriculation string, 
+marque string, 
+nom string, 
+puissance int, 
+longueur String, 
+nbplaces int,
+nbportes int, 
+couleur String, 
+occasion boolean, 
+prix int
+)
+STORED BY 'oracle.kv.hadoop.hive.table.TableStorageHandler'
+TBLPROPERTIES (
+"oracle.kv.kvstore" = "kvstore",
+"oracle.kv.hosts" = "localhost:5000", 
+"oracle.kv.tableName" = "IMMATRICULATIONS_ESTIA2223_PACHOT");
+
+-- Verification : compter les lignes
+
+select COUNT(*) from Immatriculations_ext;
+
+-----------------------------------------------------------------------------------------------------
+--------------------------------------Partie HDFS CO2------------------------------------------------
+-----------------------------------------------------------------------------------------------------
+
+-- On implémente le résultat dans hive (table externe voir la procédure dans tableHive.txt)
+(Avoir lancé Hive et s y connecter dans deux cmd différents)
+
+(lancer hive)
+
+nohup hive --service metastore > /dev/null &
+nohup hiveserver2 > /dev/null &
+
+(Se connecter à Hive)
+
+beeline -u jdbc:hive2://localhost:10000 vagrant
+
+-- Faire les commande en-dessous dans hive sql
+-----------------------------------------------------------------------------------------------------
+--------------------------------------- CO2_EXT -----------------------------------------------------
+-----------------------------------------------------------------------------------------------------
+
+CREATE DATABASE IF NOT EXISTS projetBigData;
+USE projetBigData;
+
+DROP TABLE IF EXISTS CO2_EXT; 
+
+CREATE EXTERNAL TABLE IF NOT EXISTS CO2_EXT(
+        marque STRING, 
+        avgBonusMalus INT,
+        avgCO2 INT,
+        avgCoutEnergie INT)
+    COMMENT 'CO2 text data'
+    ROW FORMAT DELIMITED
+    FIELDS TERMINATED BY ';'
+    STORED AS TEXTFILE
+    location 'hdfsFileSortedCO2Final';
+	
+-- On vérifie : 
+
+SELECT * from CO2_EXT; 
+
+-- On créer une table interne (physique) dans laquelle on va implémenter la data de la table externe
+-- A SAVOIR : 
+-- Suppression de table externe : Hive supprime uniquement les métadonnées, constituées principalement du schéma.
+-- Suppression de table interne : Hive supprime les données et les métadonnées stockées dans l'entrepôt Hive.
+
+-----------------------------------------------------------------------------------------------------
+--------------------------------------- CO2(Table interne)-------------------------------------------
+-----------------------------------------------------------------------------------------------------
+
+CREATE DATABASE IF NOT EXISTS projetBigData;
+USE projetBigData;
+
+DROP TABLE IF EXISTS CO2;
+
+CREATE TABLE IF NOT EXISTS CO2(
+  marque STRING, avgBonusMalus INT, avgCO2 INT,    
+  avgCoutEnergie INT)
+  COMMENT 'Data about Bonus Malus, emission of CO2 and ernergy cost for each brand';
+  
+-- ELT 
+
+INSERT OVERWRITE TABLE CO2 SELECT * FROM CO2_EXT;
+
+-- Verifier les données 
+
+SELECT * from CO2; 
+
+-- Supprimer la table externe (pas obligatoire)
+
+DROP TABLE IF EXISTS CO2_TEXT; 
+
+-----------------------------------------------------------------------------------------------------
+-------------------------------------- Partie MongoDB -----------------------------------------------
+-----------------------------------------------------------------------------------------------------
+
+-- Partie MongoDB avec hive (avoir démarré hdfs et hive)
+-----------------------------------------------------------------------------------------------------
+--------------------------------------- Catalogue_ext -----------------------------------------------
+-----------------------------------------------------------------------------------------------------
+
+CREATE DATABASE IF NOT EXISTS projetBigData;
+USE projetBigData;
+
+-- Remove the Catalogue_ext table if it exists
+DROP TABLE IF EXISTS Catalogue_ext;
+
+-- Create MongoDB connected external table of Catalogue 
+CREATE EXTERNAL TABLE Catalogue_ext ( id STRING, marque STRING, nom STRING, puissance INT, longueur STRING, nbPlaces INT, nbPortes INT, couleur STRING, occasion STRING, prix INT)
+STORED BY 'com.mongodb.hadoop.hive.MongoStorageHandler'
+WITH SERDEPROPERTIES('mongo.columns.mapping'='{"id":"_id", "nbPlaces" : "nbPlaces", "nbPortes" : "nbPortes"}')
+TBLPROPERTIES('mongo.uri'='mongodb://localhost:27017/projetBigData.Catalogue');
+
+-- Query the external table
+SELECT * FROM Catalogue_ext;
+
+-----------------------------------------------------------------------------------------------------
+--------------------------------------- Catalogue(Table interne)-------------------------------------
+-----------------------------------------------------------------------------------------------------
+
+CREATE DATABASE IF NOT EXISTS projetBigData;
+USE projetBigData;
+
+DROP TABLE IF EXISTS Catalogue;
+
+CREATE TABLE IF NOT EXISTS Catalogue(
+  id STRING, marque STRING, nom STRING, puissance INT, longueur STRING, nbPlaces INT, nbPortes INT, couleur STRING, occasion STRING, prix INT)
+  COMMENT 'Catalogue table intern table';
+  
+-- ELT 
+
+INSERT OVERWRITE TABLE Catalogue SELECT * FROM Catalogue_ext;
+
+-- Verifier les données 
+
+SELECT * from Catalogue; 
+
+-----------------------------------------------------------------------------------------------------
+--------------------------------------- Marketing_ext -----------------------------------------------
+-----------------------------------------------------------------------------------------------------
+
+CREATE DATABASE IF NOT EXISTS projetBigData;
+USE projetBigData;
+
+-- Remove the Catalogue_ext table if it exists
+DROP TABLE IF EXISTS Marketing_ext;
+
+-- Create MongoDB connected external table of Marketing
+CREATE EXTERNAL TABLE Marketing_ext ( id STRING, age INT, sexe STRING, taux INT, situationFamiliale STRING, nbEnfantsAcharge INT, 2emevoiture STRING)
+STORED BY 'com.mongodb.hadoop.hive.MongoStorageHandler'
+WITH SERDEPROPERTIES('mongo.columns.mapping'='{"id":"_id", "situationFamiliale" : "situationFamiliale", "nbEnfantsAcharge" : "nbEnfantsAcharge", "2emevoiture" : "2emevoiture"}')
+TBLPROPERTIES('mongo.uri'='mongodb://localhost:27017/projetBigData.Marketing');
+
+-- Query the external table
+SELECT * FROM Marketing_ext;
+
+-----------------------------------------------------------------------------------------------------
+--------------------------------------- Clients_4_ext -----------------------------------------------
+-----------------------------------------------------------------------------------------------------
+
+CREATE DATABASE IF NOT EXISTS projetBigData;
+USE projetBigData;
+
+-- Remove the Catalogue_ext table if it exists
+DROP TABLE IF EXISTS Clients_4_ext;
+
+-- Create MongoDB connected external table of Clients_4_ext
+CREATE EXTERNAL TABLE Clients_4_ext ( id STRING, age INT, sexe STRING, taux INT, situationFamiliale STRING, nbEnfantsAcharge INT, 2emevoiture STRING, immatriculation STRING)
+STORED BY 'com.mongodb.hadoop.hive.MongoStorageHandler'
+WITH SERDEPROPERTIES('mongo.columns.mapping'='{"id":"_id", "situationFamiliale" : "situationFamiliale", "nbEnfantsAcharge" : "nbEnfantsAcharge", "2emevoiture" : "2emevoiture"}')
+TBLPROPERTIES('mongo.uri'='mongodb://localhost:27017/projetBigData.Clients_4');
+
+-- Query the external table
+SELECT COUNT(*) FROM Clients_4_ext;
+SELECT * FROM Clients_4_ext;
+
+-----------------------------------------------------------------------------------------------------
+--------------------------------------- Clients_12_ext ----------------------------------------------
+-----------------------------------------------------------------------------------------------------
+
+CREATE DATABASE IF NOT EXISTS projetBigData;
+USE projetBigData;
+
+-- Remove the Catalogue_ext table if it exists
+DROP TABLE IF EXISTS Clients_12_ext;
+
+-- Create MongoDB connected external table of Clients_12_ext
+CREATE EXTERNAL TABLE Clients_12_ext ( id STRING, age INT, sexe STRING, taux INT, situationFamiliale STRING, nbEnfantsAcharge INT, 2emevoiture STRING, immatriculation STRING)
+STORED BY 'com.mongodb.hadoop.hive.MongoStorageHandler'
+WITH SERDEPROPERTIES('mongo.columns.mapping'='{"id":"_id", "situationFamiliale" : "situationFamiliale", "nbEnfantsAcharge" : "nbEnfantsAcharge", "2emevoiture" : "2emevoiture"}')
+TBLPROPERTIES('mongo.uri'='mongodb://localhost:27017/projetBigData.Clients_12');
+
+-- Query the external table
+SELECT COUNT(*) FROM Clients_12_ext;
+SELECT * FROM Clients_12_ext;
+
+
+-----------------------------------------------------------------------------------------------------
+--------------------------------------- CatalogueCO2 ------------------------------------------------
+-----------------------------------------------------------------------------------------------------
+
+CREATE DATABASE IF NOT EXISTS projetBigData;
+USE projetBigData;
+
+DROP TABLE IF EXISTS CatalogueCO2;
+
+CREATE TABLE IF NOT EXISTS CatalogueCO2(
+  id STRING, marque STRING, nom STRING, puissance INT, longueur STRING, nbPlaces INT, nbPortes INT, couleur STRING, occasion STRING, prix INT, avgBonusMalus INT, avgCO2 INT,    
+  avgCoutEnergie INT)
+  COMMENT 'CatalogueCO2 table intern table';
+  
+-- ELT 
+
+INSERT OVERWRITE TABLE CatalogueCO2 SELECT c.id, c.marque, c.nom, c.puissance, c.longueur, c.nbPlaces, c.nbPortes, c.couleur, c.occasion, c.prix
+, CO2.avgBonusMalus, CO2.avgCO2 , CO2.avgCoutEnergie FROM Catalogue c, CO2 where UPPER(c.marque) LIKE REPLACE(UPPER(CO2.marque), 'Z', '');
+
+-- Verifier les données 
+
+SELECT * from CatalogueCO2 WHERE UPPER(marque) = "SAAB"; 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-- Oracle SQL
+
+ssh PACHOT@134.59.152.114 -p 443
+MOT DE PASSE :etuMia020NoSqlee
+
+sqlplus PACHOTBZ2223@orcl/PACHOTBZ222301
+
+drop table IMMATRICULATIONS_ONS_H_O_EXT; 
+
+CREATE TABLE IMMATRICULATIONS_ONS_H_O_EXT(
+IMMATRICULATION varchar2(12), 
+MARQUE varchar2(12), 
+NOM varchar2(30),  
+PUISSANCE  varchar2(12), 
+LONGUEUR varchar2(12),
+NBPLACES number(8), 
+NBPORTES number(8), 
+COULEUR varchar2(12),
+OCCASION varchar2(12), 
+PRIX number(8) 
+)
+ORGANIZATION EXTERNAL (
+TYPE ORACLE_HIVE 
+DEFAULT DIRECTORY   ORACLE_BIGDATA_CONFIG
+ACCESS PARAMETERS 
+(
+com.oracle.bigdata.tablename=default.IMMATRICULATIONS_ESTIA2223_PACHOT_ONS_H_EXT
+)
+) 
+REJECT LIMIT UNLIMITED;
+
+
+set linesize 400;
+col IMMATRICULATION format A15
+
+select * from IMMATRICULATIONS_ONS_H_O_EXT
+where rownum <100 ;
+
+select count(*) from IMMATRICULATIONS_ONS_H_O_EXT;
+
+-- Arrêter les serveurs : 
+-- KVStore
+java -Xmx256m -Xms256m -jar $KVHOME/lib/kvstore.jar stop -root $KVROOT
+-- Hive
+pkill -f "HiveMetaStore|HiveServer2"
+-- HDFS
+stop-yarn.sh
+stop-dfs.sh
+

@@ -1,0 +1,73 @@
+(Tous les cmd sont à ouvrir à cette adresse : C:\vagrant-projects\OracleDatabase\21.3.0) 
+(A chaque serveur démarré changer de cmd)
+
+-- MongoDB
+
+-- Si la machine virtuelle n'est pas allumée 
+
+vagrant up
+
+vagrant ssh
+
+-- Allumer MongoDB 
+
+sudo systemctl start mongod
+
+-- Ouvrir un nouveau cmd
+
+vagrant ssh
+
+-- 2 Méthodes : 
+
+-- 1 : mongoimport (NE PAS UTILISER CAR LE JAR FONCTIONNE)
+
+-- Déplacer les csv à la racine ~
+
+cp ../../vagrant/ProjetTPABigData/ExtractorMongoDB-main/ExtractorMongoDB/Catalogue.csv ~
+cp ../../vagrant/ProjetTPABigData/ExtractorMongoDB-main/ExtractorMongoDB/Marketing.csv ~
+cp ../../vagrant/ProjetTPABigData/ExtractorMongoDB-main/ExtractorMongoDB/Clients_4.csv ~
+cp ../../vagrant/ProjetTPABigData/ExtractorMongoDB-main/ExtractorMongoDB/Clients_12.csv ~
+
+-- Lancer le mongo import 
+
+mongoimport -d projetBigData -c catalogue --type csv --file Catalogue.csv --headerline
+
+mongoimport -d projetBigData -c marketing --type csv --file Marketing.csv --headerline
+
+mongoimport -d projetBigData -c clients_4 --type csv --file Clients_4.csv --headerline
+
+mongoimport -d projetBigData -c clients_12 --type csv --file Clients_12.csv --headerline
+
+-- 2 : AVEC UN JAR (CHARGEUR MAISON + NETTOYAGE)
+
+-- Déplacer le fichier de transcription (qui permet de nettoyer le csv avant d'entrer les valeurs dans MongoDB)
+
+cp ../../vagrant/ProjetTPABigData/ExtractorMongoDB-main/ExtractorMongoDB/transcription.txt ~
+
+-- Créer un fichier et déplacer sur la vm de rejet comprenant toutes les lignes non insérées car non conformes 
+
+cp ../../vagrant/ProjetTPABigData/ExtractorMongoDB-main/ExtractorMongoDB/rejet.txt ~
+
+-- Executer le jar afin de créer la database et remplir les collections
+
+java -jar ../../vagrant/ProjetTPABigData/ExtractorMongoDB-main/ExtractorMongoDB/ExtractorMongoDB.jar ~
+
+-- Lancer MongoDB
+
+mongo
+
+-- Tester que tout fonctionne 
+
+show dbs
+
+-- Vérifier que les tables sont bien remplies (sur mongo avec le cmd (lancé précédemment))
+
+use projetBigData
+
+db.marketing.find();
+
+(voir tableHive partie mongo pour la suite)
+
+-- Arrêter MongoDB
+
+sudo systemctl stop mongod

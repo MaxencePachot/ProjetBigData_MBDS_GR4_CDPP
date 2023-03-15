@@ -1,0 +1,87 @@
+(Tous les cmd sont à ouvrir à cette adresse : C:\vagrant-projects\OracleDatabase\21.3.0)
+(A chaque serveur démarré changer de cmd)
+
+-- Hadoop map/reduce
+
+-- Connexion à hdfs : 
+
+start-dfs.sh
+start-yarn.sh
+
+-- On créer un dossier dans hdfs 
+
+hadoop fs -mkdir CO2input
+
+-- On ajoute des lignes dans le csv qui va nous permettre d'implémenter la moyenne des marques n'étant pas dans CO2.csv mais dans Catalogue.csv
+
+460,ZDACIA,0,0,0
+461,ZDAIHATSU,0,0,0
+462,ZFIAT,0,0,0
+463,ZFORD,0,0,0
+464,ZHONDA,0,0,0
+465,ZLANCIA,0,0,0
+466,ZSAAB,0,0,0
+467,ZSEAT,0,0,0
+
+-- On envoie CO2.csv de la machine locale vers le stockage de la VM (en supprimant au cas où une CO2.csv existerait)
+
+rm CO2.csv
+
+cp ../../vagrant/ProjetTPABigData/hdfs/CO2.csv ~
+
+-- On place CO2.csv dans ce dossier (en le supprimant avant au cas où il existerait)
+
+hadoop fs -rm -r CO2input/CO2.csv
+
+hadoop fs -put CO2.csv CO2input
+
+-- Compiler le programme java en jar
+
+cd ../../vagrant/ProjetTPABigData/hdfs/CO2/hadoop_intellij_project_gradle/
+./gradlew
+./gradlew clean
+./gradlew jar
+
+-- retourner au répertoire courant de la VM
+
+cd ~
+
+-- Supprimer le dossier CO2output 
+
+hadoop fs -rm -r /CO2output
+
+-- On execute le .JAR (programme map_reduce)
+
+hadoop jar ../../vagrant/ProjetTPABigData/hdfs/CO2/hadoop_intellij_project_gradle/build/libs/projetBigData-1.0.0.jar org.mbds.hadoop.projetBigData.CO2 CO2input /CO2output
+
+-- On vérifie les résultats 
+
+hadoop fs -cat /CO2output/*
+
+-- On créer un dossier dans lequel on va mettre le fichier trié (CO2) (en le supprimant avant au cas où il existerait)
+
+rm -r fileSortedCO2Final
+
+mkdir -p fileSortedCO2Final
+
+-- On copie le fichier de hdfs vers le répertoire local 
+
+hadoop fs -getmerge /CO2output/* fileSortedCO2Final/CO2Sorted.txt
+
+-- On créer un dossier dans hdfs (on le supprime avant au cas où)
+
+hadoop fs -rm -r hdfsFileSortedCO2Final
+
+hadoop fs -mkdir hdfsFileSortedCO2Final
+
+-- On renvoie le txt dans hdfs
+
+hadoop fs -put fileSortedCO2Final/CO2Sorted.txt hdfsFileSortedCO2Final
+
+-- On vérifie 
+
+hadoop fs -cat hdfsFileSortedCO2Final/CO2Sorted.txt
+
+-- Arrêter hdfs : 
+stop-yarn.sh
+stop-dfs.sh

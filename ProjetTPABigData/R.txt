@@ -1,0 +1,200 @@
+-----------------------------------------------------------------------------------------------------
+-------------------------------------- TRAVAIL EN LOCAL ---------------------------------------------
+-----------------------------------------------------------------------------------------------------
+-- EXPORT A PARTIR DE HIVE
+
+-- Exporter la table Catalogue en csv sur la VM 
+
+-- Lancer ces commandes dans le répertoire courant ~
+
+hive -e 'use projetBigData; select * from catalogue' | sed 's/[\t]/,/g' > Catalogue.csv
+
+-- Copier le csv sur la machine local
+cp Catalogue.csv ../../vagrant/ProjetTPABigData/R
+
+-------------
+-------------
+
+-- Exporter la table Clients_4 en csv sur la VM
+hive -e 'use projetBigData; select * from Clients_4_ext' | sed 's/[\t]/,/g' > Clients_4_ext.csv
+
+-- Copier le csv sur la machine local
+cp Clients_4_ext.csv ../../vagrant/ProjetTPABigData/R
+
+-------------
+-------------
+
+-- Exporter la table Clients_12 en csv sur la VM
+hive -e 'use projetBigData; select * from Clients_12_ext' | sed 's/[\t]/,/g' > Clients_12_ext.csv
+
+-- Copier le csv sur la machine local
+cp Clients_12_ext.csv ../../vagrant/ProjetTPABigData/R
+
+-------------
+-------------
+
+-- Exporter la table Immatriculations en csv sur la VM
+hive -e 'use projetBigData; select * from Immatriculations_ext' | sed 's/[\t]/,/g' > Immatriculations_ext.csv
+
+-- Copier le csv sur la machine local
+cp Immatriculations_ext.csv ../../vagrant/ProjetTPABigData/R
+
+-------------
+-------------
+
+-- Exporter la table Marketing en csv sur la VM
+hive -e 'use projetBigData; select * from Marketing_ext' | sed 's/[\t]/,/g' > Marketing_ext.csv
+
+-- Copier le csv sur la machine local
+cp Marketing_ext.csv ../../vagrant/ProjetTPABigData/R
+
+---------------------------------------------------------------------------------------
+-------------------------- UNE FOIS MARKETING_CLUSTER CRÉE ----------------------------
+---------------------------------------------------------------------------------------
+
+---------------------------------------------------------------------------------------
+------------------------- IMPORT DE MARKETING_CLUSTER DANS HIVE -----------------------
+---------------------------------------------------------------------------------------
+
+-- lancer le serveur Hive (avoir lancé hdfs avant dans un autre cmd)
+
+(lancer hdfs : 
+start-dfs.sh
+start-yarn.sh
+)
+
+nohup hive --service metastore > /dev/null &
+nohup hiveserver2 > /dev/null &
+
+-- Ouvrir un nouveau cmd (dans 21.3.0)
+
+Vagrant ssh
+
+-- Créer un répertoire dans hdfs
+
+hadoop fs -mkdir marketing_Cluster
+
+-- Mettre le csv dans le répertoire hdfs
+
+hadoop fs -put ../../vagrant/ProjetTPABigData/R/Marketing_cluster.csv marketing_Cluster
+
+[vagrant@oracle-21c-vagrant ~]$ hadoop fs -cat marketing_Cluster/*
+,age,sexe,taux,situationFamiliale,nbEnfantsAcharge,SecondeVoiture,cluster
+1,35,m,223,Celibataire,0,false,3
+2,48,m,401,Celibataire,0,false,3
+3,26,f,420,En Couple,3,true,4
+4,80,m,530,En Couple,3,false,2
+5,27,f,153,En Couple,2,false,3
+6,59,f,572,En Couple,2,false,3
+7,43,f,431,Celibataire,0,false,1
+8,64,m,559,Celibataire,0,false,3
+9,22,m,154,En Couple,1,false,3
+10,79,f,981,En Couple,2,false,3
+11,55,m,588,Celibataire,0,false,1
+12,19,f,212,Celibataire,0,false,3
+13,34,f,1112,En Couple,0,false,3
+14,60,m,524,En Couple,0,true,1
+15,22,m,411,En Couple,3,true,4
+16,58,m,1192,En Couple,0,false,3
+17,54,f,452,En Couple,3,true,4
+18,35,m,589,Celibataire,0,false,1
+19,59,m,748,En Couple,0,true,1
+
+-- Se connecter au serveur HIVE
+
+beeline -u jdbc:hive2://localhost:10000 vagrant
+
+0: jdbc:hive2://localhost:10000> 
+
+CREATE DATABASE IF NOT EXISTS projetBigData;
+USE projetBigData;
+
+DROP TABLE IF EXISTS MARKETING_CLUSTER_EXT; 
+
+CREATE EXTERNAL TABLE IF NOT EXISTS MARKETING_CLUSTER_EXT(
+    age INT, 
+    sexe STRING,
+    situationFamiliale STRING,
+    nbEnfantsAcharge STRING,
+    SecondeVoiture STRING,
+    cluster INT)
+COMMENT 'Marketing_cluster table data from csv'
+ROW FORMAT DELIMITED
+FIELDS TERMINATED BY ','
+STORED AS TEXTFILE
+LOCATION 'marketing_Cluster'
+TBLPROPERTIES ("skip.header.line.count"="1");
+
+select * from MARKETING_CLUSTER_EXT;
+	 
+-----------------------------------------------------------------------------------------------------
+------------------------------------ TRAVAIL SUR LA MACHINE -----------------------------------------
+-----------------------------------------------------------------------------------------------------
+
+-- Avec HIVE 
+
+cp ../../vagrant/ProjetTPABigData/R/R_HIVE_PARTIE2345_CLUSTERING_PREDICT_GR4 ~
+cp ../../vagrant/ProjetTPABigData/R/R_HIVE_Clients_4_12_PARTIE1_GR4 ~
+
+-- Activer le mode admin pour l'utilisateur sur le jar jdbc
+
+chmod 777 ../../usr/local/hive/lib/hive-jdbc-3.1.3.jar
+
+-- Créer un dossier où installer la lib Rhive 
+
+sudo mkdir -p /rhive/lib/2.0-0.2
+
+-- Activer le mode admin pour l'utilisateur sur la lib RHive
+
+sudo chmod 777 /usr/lib64/R/library/RHive
+
+- et 
+
+chmod 777 /rhive/lib/2.0-0.2
+
+-- Déplacer le tar.gz de RHive dans la VM
+
+cp ../../vagrant/ProjetTPABigData/R/RHive_2.0-0.2.tar.gz ~
+
+-- Lancer R
+R
+
+-- Installer le package RHive 
+
+install.packages("RHive_2.0-0.2.tar.gz", repos = NULL, type="source")
+
+-- Tester la connexion 
+
+hive_test<-rhive.query("SELECT * FROM Marketing_ext")
+print(hive_test)
+
+-- Sortir de R 
+
+q()
+
+-- Lancer les scripts 
+
+Rscript R_HIVE_PARTIE2345_CLUSTERING_PREDICT_GR4
+Rscript R_HIVE_Clients_4_12_PARTIE1_GR4
+
+-----------------------------------------------------------------------------------------------------
+------------------------------ PACKAGES NE S'INSTALLENT PAS -----------------------------------------
+-----------------------------------------------------------------------------------------------------
+
+-- Si les packages ne se sont pas installés, les installer manuellement (pas RHive2 car plus dans CRAN)
+-- Exemple avec ggplot2 (lancer la commande dans le répertoire courant ~
+
+sudo R -e "install.packages('ggplot2', repos='http://cran.rstudio.com/')"
+
+-- Faire pareil avec toutes les librairies 
+
+# install.packages("ggplot2")
+# install.packages("rattle")
+# install.packages("dplyr")
+# install.packages("vctrs")
+# install.packages("cluster")
+# install.packages("randomForest")
+
+-- Si en direct avec HIVE 
+
+# install.packages("rJava")
