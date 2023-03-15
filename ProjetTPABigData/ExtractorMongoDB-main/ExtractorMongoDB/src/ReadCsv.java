@@ -5,7 +5,17 @@ public class ReadCsv {
         String line = "";
         String splitBy = ",";
         MongoAdd MA = new MongoAdd();
-        Client client = new Client();
+        Client client = new Client(); 
+        Transcription transcript = new Transcription();
+        try {
+            FileWriter myWriter = new FileWriter("rejet.txt");
+            myWriter.write("");
+            myWriter.close();
+        } catch (IOException e) {            
+            e.printStackTrace();
+        }
+        
+        transcript.mapping();        
         try {
             BufferedReader br = new BufferedReader(new FileReader(fileName+".csv"));
             while ((line = br.readLine()) != null) 
@@ -13,12 +23,12 @@ public class ReadCsv {
                 String[] listClient = line.split(splitBy); 
                 try {
                     client.age = Integer.parseInt(listClient[0]);
-                    client.sexe = listClient[1];
+                    client.sexe = transcript.transcr(listClient[1]);
                     client.taux = Integer.parseInt(listClient[2]);
-                    client.fam = listClient[3];
+                    client.fam = transcript.transcr(listClient[3]);
                     client.nbenfant = Integer.parseInt(listClient[4]);
                     client.ndvoiture = Boolean.parseBoolean(listClient[5]);
-                    client.immatriculation = listClient[6];                        
+                    client.immatriculation = listClient[6].replaceAll(" ", "");                        
                     MA.addClient(client, fileName);
                 } catch (Exception e) {
                     PrintWriter pw = new PrintWriter(new FileOutputStream("Log"));
@@ -31,12 +41,14 @@ public class ReadCsv {
             e.printStackTrace();
         }
     }
-
+ 
     public void readMarketing(String fileName) {
         String line = "";
         String splitBy = ",";
         MongoAdd MA = new MongoAdd();
         Marketing marketing = new Marketing();
+        Transcription transcript = new Transcription();
+        transcript.mapping(); 
         try {
             BufferedReader br = new BufferedReader(new FileReader(fileName+".csv"));
             while ((line = br.readLine()) != null) 
@@ -44,9 +56,9 @@ public class ReadCsv {
                 String[] listClient = line.split(splitBy); 
                 try {
                     marketing.age = Integer.parseInt(listClient[0]);
-                    marketing.sexe = listClient[1];
+                    marketing.sexe = transcript.transcr(listClient[1]);
                     marketing.taux = Integer.parseInt(listClient[2]);
-                    marketing.fam = listClient[3];
+                    marketing.fam = transcript.transcr(listClient[3]);
                     marketing.nbenfant = Integer.parseInt(listClient[4]);
                     marketing.ndvoiture = Boolean.parseBoolean(listClient[5]);                       
                     MA.addMarketing(marketing, fileName);

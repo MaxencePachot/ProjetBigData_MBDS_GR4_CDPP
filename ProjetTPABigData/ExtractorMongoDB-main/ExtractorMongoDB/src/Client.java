@@ -62,4 +62,19 @@ public class Client {
     public void setImmatriculation(String immatriculation) {
         this.immatriculation = immatriculation;
     }
+
+    public boolean check(){
+        if(this.age>0 && 
+          ("f".equals(this.sexe) ||
+           "m".equals(this.sexe))&&
+          ("Celibataire".equals(this.fam) ||
+          "En Couple".equals(this.fam))&&
+           this.taux>=0 &&
+           this.nbenfant>=0){
+           return true;
+        }
+        else{
+            return false;
+        }
+    }
 }

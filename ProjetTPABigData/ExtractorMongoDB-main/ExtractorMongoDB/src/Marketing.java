@@ -54,4 +54,18 @@ public class Marketing {
         this.ndvoiture = ndvoiture;
     }    
 
+    public boolean check(){
+        if(this.age>0 && 
+          (this.sexe=="f" ||
+           this.sexe=="m")&&
+          (this.fam=="celibataire" ||
+           this.fam=="en couple")&&
+           this.nbenfant>=0){
+            return true;
+        }
+        else{
+            return false;
+        }
+    }
+
 }
