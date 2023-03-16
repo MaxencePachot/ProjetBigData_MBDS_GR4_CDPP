@@ -70,6 +70,14 @@ TBLPROPERTIES (
 
 -- Verification : compter les lignes
 
+set hive.cli.print.header=true;
+set hive.cli.print.row.to.vertical=true;
+set hive.cli.print.current.db=false;
+set hive.cli.print.row.to.vertical.limit=10000;
+set hive.resultset.use.unique.column.names=false;
+set hive.cli.print.header.separator="\t";
+set hive.cli.print.max_column_width=30;
+
 select COUNT(*) from Immatriculations_ext;
 
 -----------------------------------------------------------------------------------------------------
@@ -111,6 +119,14 @@ CREATE EXTERNAL TABLE IF NOT EXISTS CO2_EXT(
 	
 -- On vérifie : 
 
+set hive.cli.print.header=true;
+set hive.cli.print.row.to.vertical=true;
+set hive.cli.print.current.db=false;
+set hive.cli.print.row.to.vertical.limit=10000;
+set hive.resultset.use.unique.column.names=false;
+set hive.cli.print.header.separator="\t";
+set hive.cli.print.max_column_width=30;
+
 SELECT * from CO2_EXT; 
 
 -- On créer une table interne (physique) dans laquelle on va implémenter la data de la table externe
@@ -137,6 +153,14 @@ CREATE TABLE IF NOT EXISTS CO2(
 INSERT OVERWRITE TABLE CO2 SELECT * FROM CO2_EXT;
 
 -- Verifier les données 
+
+set hive.cli.print.header=true;
+set hive.cli.print.row.to.vertical=true;
+set hive.cli.print.current.db=false;
+set hive.cli.print.row.to.vertical.limit=10000;
+set hive.resultset.use.unique.column.names=false;
+set hive.cli.print.header.separator="\t";
+set hive.cli.print.max_column_width=30;
 
 SELECT * from CO2; 
 
@@ -166,6 +190,15 @@ WITH SERDEPROPERTIES('mongo.columns.mapping'='{"id":"_id", "nbPlaces" : "nbPlace
 TBLPROPERTIES('mongo.uri'='mongodb://localhost:27017/projetBigData.Catalogue');
 
 -- Query the external table
+
+set hive.cli.print.header=true;
+set hive.cli.print.row.to.vertical=true;
+set hive.cli.print.current.db=false;
+set hive.cli.print.row.to.vertical.limit=10000;
+set hive.resultset.use.unique.column.names=false;
+set hive.cli.print.header.separator="\t";
+set hive.cli.print.max_column_width=30;
+
 SELECT * FROM Catalogue_ext;
 
 -----------------------------------------------------------------------------------------------------
@@ -187,6 +220,14 @@ INSERT OVERWRITE TABLE Catalogue SELECT * FROM Catalogue_ext;
 
 -- Verifier les données 
 
+set hive.cli.print.header=true;
+set hive.cli.print.row.to.vertical=true;
+set hive.cli.print.current.db=false;
+set hive.cli.print.row.to.vertical.limit=10000;
+set hive.resultset.use.unique.column.names=false;
+set hive.cli.print.header.separator="\t";
+set hive.cli.print.max_column_width=30;
+
 SELECT * from Catalogue; 
 
 -----------------------------------------------------------------------------------------------------
@@ -206,6 +247,15 @@ WITH SERDEPROPERTIES('mongo.columns.mapping'='{"id":"_id", "situationFamiliale" 
 TBLPROPERTIES('mongo.uri'='mongodb://localhost:27017/projetBigData.Marketing');
 
 -- Query the external table
+
+set hive.cli.print.header=true;
+set hive.cli.print.row.to.vertical=true;
+set hive.cli.print.current.db=false;
+set hive.cli.print.row.to.vertical.limit=10000;
+set hive.resultset.use.unique.column.names=false;
+set hive.cli.print.header.separator="\t";
+set hive.cli.print.max_column_width=30;
+
 SELECT * FROM Marketing_ext;
 
 -----------------------------------------------------------------------------------------------------
@@ -225,6 +275,15 @@ WITH SERDEPROPERTIES('mongo.columns.mapping'='{"id":"_id", "situationFamiliale" 
 TBLPROPERTIES('mongo.uri'='mongodb://localhost:27017/projetBigData.Clients_4');
 
 -- Query the external table
+
+set hive.cli.print.header=true;
+set hive.cli.print.row.to.vertical=true;
+set hive.cli.print.current.db=false;
+set hive.cli.print.row.to.vertical.limit=10000;
+set hive.resultset.use.unique.column.names=false;
+set hive.cli.print.header.separator="\t";
+set hive.cli.print.max_column_width=30;
+
 SELECT COUNT(*) FROM Clients_4_ext;
 SELECT * FROM Clients_4_ext;
 
@@ -245,6 +304,15 @@ WITH SERDEPROPERTIES('mongo.columns.mapping'='{"id":"_id", "situationFamiliale" 
 TBLPROPERTIES('mongo.uri'='mongodb://localhost:27017/projetBigData.Clients_12');
 
 -- Query the external table
+
+set hive.cli.print.header=true;
+set hive.cli.print.row.to.vertical=true;
+set hive.cli.print.current.db=false;
+set hive.cli.print.row.to.vertical.limit=10000;
+set hive.resultset.use.unique.column.names=false;
+set hive.cli.print.header.separator="\t";
+set hive.cli.print.max_column_width=30;
+
 SELECT COUNT(*) FROM Clients_12_ext;
 SELECT * FROM Clients_12_ext;
 
@@ -270,67 +338,67 @@ INSERT OVERWRITE TABLE CatalogueCO2 SELECT c.id, c.marque, c.nom, c.puissance, c
 
 -- Verifier les données 
 
-SELECT * from CatalogueCO2 WHERE UPPER(marque) = "SAAB"; 
+set hive.cli.print.header=true;
+set hive.cli.print.row.to.vertical=true;
+set hive.cli.print.current.db=false;
+set hive.cli.print.row.to.vertical.limit=10000;
+set hive.resultset.use.unique.column.names=false;
+set hive.cli.print.header.separator="\t";
+set hive.cli.print.max_column_width=30;
+
+SELECT * from CatalogueCO2 WHERE UPPER(marque) = "SAAB";
 
 
+-----------------------------------------------------------------------
+------------------------- CREATION DES VUES ---------------------------
+-----------------------------------------------------------------------
 
+set hive.cli.print.header=true;
+set hive.cli.print.row.to.vertical=true;
+set hive.cli.print.current.db=false;
+set hive.cli.print.row.to.vertical.limit=10000;
+set hive.resultset.use.unique.column.names=false;
+set hive.cli.print.header.separator="\t";
+set hive.cli.print.max_column_width=30;
 
+-- On lie les deux tables clients
 
+DROP VIEW IF EXISTS clients_ext;
 
+CREATE VIEW clients_ext AS
+SELECT *
+FROM clients_4_ext
+UNION ALL
+SELECT *
+FROM clients_12_ext;
 
+-- Vérification
 
+select * from clients_ext;
 
+-- On lie clients_ext et immatriculations_ext
 
+DROP VIEW IF EXISTS immatriculations_clients_ext;
 
+CREATE VIEW immatriculations_clients_ext AS
+SELECT immatriculations_ext.immatriculation, 
+immatriculations_ext.marque, 
+immatriculations_ext.nom, 
+immatriculations_ext.puissance, 
+immatriculations_ext.longueur, 
+immatriculations_ext.nbplaces,
+immatriculations_ext.nbportes, 
+immatriculations_ext.couleur, 
+immatriculations_ext.occasion, 
+immatriculations_ext.prix,
+clients_ext.age,
+clients_ext.sexe,
+clients_ext.taux,
+clients_ext.situationFamiliale,
+clients_ext.nbEnfantsAcharge,
+clients_ext.2emevoiture
+FROM clients_ext
+JOIN immatriculations_ext ON clients_ext.immatriculation = immatriculations_ext.immatriculation;
 
-
-
--- Oracle SQL
-
-ssh PACHOT@134.59.152.114 -p 443
-MOT DE PASSE :etuMia020NoSqlee
-
-sqlplus PACHOTBZ2223@orcl/PACHOTBZ222301
-
-drop table IMMATRICULATIONS_ONS_H_O_EXT; 
-
-CREATE TABLE IMMATRICULATIONS_ONS_H_O_EXT(
-IMMATRICULATION varchar2(12), 
-MARQUE varchar2(12), 
-NOM varchar2(30),  
-PUISSANCE  varchar2(12), 
-LONGUEUR varchar2(12),
-NBPLACES number(8), 
-NBPORTES number(8), 
-COULEUR varchar2(12),
-OCCASION varchar2(12), 
-PRIX number(8) 
-)
-ORGANIZATION EXTERNAL (
-TYPE ORACLE_HIVE 
-DEFAULT DIRECTORY   ORACLE_BIGDATA_CONFIG
-ACCESS PARAMETERS 
-(
-com.oracle.bigdata.tablename=default.IMMATRICULATIONS_ESTIA2223_PACHOT_ONS_H_EXT
-)
-) 
-REJECT LIMIT UNLIMITED;
-
-
-set linesize 400;
-col IMMATRICULATION format A15
-
-select * from IMMATRICULATIONS_ONS_H_O_EXT
-where rownum <100 ;
-
-select count(*) from IMMATRICULATIONS_ONS_H_O_EXT;
-
--- Arrêter les serveurs : 
--- KVStore
-java -Xmx256m -Xms256m -jar $KVHOME/lib/kvstore.jar stop -root $KVROOT
--- Hive
-pkill -f "HiveMetaStore|HiveServer2"
--- HDFS
-stop-yarn.sh
-stop-dfs.sh
+select * from immatriculations_clients_ext;
 

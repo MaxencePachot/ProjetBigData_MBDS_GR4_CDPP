@@ -112,11 +112,13 @@ USE projetBigData;
 DROP TABLE IF EXISTS MARKETING_CLUSTER_EXT; 
 
 CREATE EXTERNAL TABLE IF NOT EXISTS MARKETING_CLUSTER_EXT(
+    id INT,
     age INT, 
     sexe STRING,
+    taux INT,
     situationFamiliale STRING,
-    nbEnfantsAcharge STRING,
-    SecondeVoiture STRING,
+    nbEnfantsAcharge INT,
+    SecondeVoiture BOOLEAN,
     cluster INT)
 COMMENT 'Marketing_cluster table data from csv'
 ROW FORMAT DELIMITED
@@ -125,7 +127,17 @@ STORED AS TEXTFILE
 LOCATION 'marketing_Cluster'
 TBLPROPERTIES ("skip.header.line.count"="1");
 
+set hive.cli.print.header=true;
+set hive.cli.print.row.to.vertical=true;
+set hive.cli.print.current.db=false;
+set hive.cli.print.row.to.vertical.limit=10000;
+set hive.resultset.use.unique.column.names=false;
+set hive.cli.print.header.separator="\t";
+set hive.cli.print.max_column_width=30;
+
 select * from MARKETING_CLUSTER_EXT;
+
+
 	 
 -----------------------------------------------------------------------------------------------------
 ------------------------------------ TRAVAIL SUR LA MACHINE -----------------------------------------
