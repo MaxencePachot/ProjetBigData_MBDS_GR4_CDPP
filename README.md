@@ -1,4 +1,4 @@
-# ProjetBigData_MBDS_GR4_CDPP
+# ProjetBigData_MBDS_GR5_CDPP
 
 Suivre le tuto de M.SIMONIAN (sur son git (ne pas télécharger les zip d'oracle nosql car ils sont déjà sur notre github))
 
