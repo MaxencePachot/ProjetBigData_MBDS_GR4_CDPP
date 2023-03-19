@@ -8,3 +8,5 @@ Puis, suivre les différents txt dans l'odre de l'architecture afin de procéder
 
 
 Membres du groupe : CAMBEFORT Matthis / DUTHEL Pierrick / PACHOT Maxence / PASSIEUX Enzo
+
+PS : Petit bug dans le PDF, nous sommes le GROUPE 5 et non le groupe 4 (nous avons bien évidemment utilisé les données du groupe 5 : clients_4 et clients_12).
